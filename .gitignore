@@ -1,20 +1,37 @@
-# Node modules
-/node_modules
+# ======================
+# Node.js
+# ======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Compilation output
-/dist
+# ======================
+# Environment variables
+# ======================
+.env
+.env.local
+.env.*.local
 
-# pnpm deploy output
-/bundle
+# ======================
+# Hardhat / Solidity
+# ======================
+artifacts/
+cache/
+typechain/
+coverage/
+coverage.json
 
-# Hardhat Build Artifacts
-/artifacts
+# ======================
+# OS / Editor
+# ======================
+.DS_Store
+.vscode/
+.idea/
 
-# Hardhat compilation (v2) support directory
-/cache
-
-# Typechain output
-/types
-
-# Hardhat coverage reports
-/coverage
+# ======================
+# Build outputs
+# ======================
+dist/
+build/
+out/
