@@ -1,20 +1,40 @@
-import { ethers } from "ethers";
-import { ETH_RPC_URL } from "../config/chains.js";
-import { CREDENTIAL_NFT_ADDRESS } from "../config/contracts.js";
-
-// Dummy ABI for now
-const credentialNFT = {
-  mintCredential: async () => true
-};
-
 export async function mintOrUpdateCredentialNFT(
   wallet,
   influenceScore,
-  trustScore
+  trustScore,
+  metrics
 ) {
-  // Later: connect signer + real contract
-  console.log("Credential NFT updated for:", wallet);
-  console.log("Influence:", influenceScore, "Trust:", trustScore);
+  const { accountAgeDays, volatility } = metrics;
 
+  // -------------------------
+  // Mint rules
+  // -------------------------
+  const CAN_MINT =
+    trustScore >= 60 &&
+    accountAgeDays >= 14 &&
+    volatility < 0.7;
+
+  // -------------------------
+  // Update rules
+  // -------------------------
+  const CAN_UPDATE =
+    trustScore >= 40; // looser condition for updates
+
+  if (CAN_MINT) {
+    console.log(
+      `[NFT] Mint / Update Credential for ${wallet}`,
+      { influenceScore, trustScore }
+    );
+  } else if (CAN_UPDATE) {
+    console.log(
+      `[NFT] Update skipped (conditions not met) for ${wallet}`
+    );
+  } else {
+    console.log(
+      `[NFT] No NFT action for ${wallet}`
+    );
+  }
+
+  // Actual on-chain call will be added after deployment
   return true;
 }
