@@ -120,3 +120,41 @@ export async function mintOrUpdateCredentialNFT(
     wallet
   };
 }
+
+/**
+ * SAFE STUB — used by role.service.js
+ * Will be fully wired after TokenFactory deployment
+ */
+export async function getTokenFactory(chain = "shardeum") {
+  const chainConfig = CHAINS[chain];
+  const contractConfig = CONTRACTS[chain];
+
+  if (!chainConfig || !contractConfig) {
+    throw new Error(`Unsupported chain: ${chain}`);
+  }
+
+  const { rpc } = chainConfig;
+  const { tokenFactory } = contractConfig;
+
+  // If not deployed yet, return stub
+  if (
+    !tokenFactory ||
+    tokenFactory === "0x0000000000000000000000000000000000000000"
+  ) {
+    return {
+      // role.service.js expects this function
+      creatorToToken: async () =>
+        "0x0000000000000000000000000000000000000000"
+    };
+  }
+
+  // After deployment (future):
+  // const provider = new ethers.JsonRpcProvider(rpc);
+  // return new ethers.Contract(tokenFactory, TokenFactoryABI, provider);
+
+  // For now, safe stub
+  return {
+    creatorToToken: async () =>
+      "0x0000000000000000000000000000000000000000"
+  };
+}

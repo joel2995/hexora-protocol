@@ -1,40 +1,21 @@
-export async function mintOrUpdateCredentialNFT(
-  wallet,
-  influenceScore,
-  trustScore,
-  metrics
-) {
-  const { accountAgeDays, volatility } = metrics;
+import { ethers } from "ethers";
+import { SHARDEUM_RPC_URL } from "../config/chains.js";
+import { recalcInfluenceOnly } from "./reputationUpdate.service.js";
 
-  // -------------------------
-  // Mint rules
-  // -------------------------
-  const CAN_MINT =
-    trustScore >= 60 &&
-    accountAgeDays >= 14 &&
-    volatility < 0.7;
+// Dummy ABI for now
+const STAKING_POOL_ABI = [];
 
-  // -------------------------
-  // Update rules
-  // -------------------------
-  const CAN_UPDATE =
-    trustScore >= 40; // looser condition for updates
+export function startEventListeners() {
+  const provider = new ethers.JsonRpcProvider(SHARDEUM_RPC_URL);
 
-  if (CAN_MINT) {
-    console.log(
-      `[NFT] Mint / Update Credential for ${wallet}`,
-      { influenceScore, trustScore }
-    );
-  } else if (CAN_UPDATE) {
-    console.log(
-      `[NFT] Update skipped (conditions not met) for ${wallet}`
-    );
-  } else {
-    console.log(
-      `[NFT] No NFT action for ${wallet}`
-    );
-  }
+  console.log("[L2] Event listeners started");
 
-  // Actual on-chain call will be added after deployment
-  return true;
+  // MOCK event listener (real ABI later)
+  provider.on("block", async (blockNumber) => {
+    // simulate periodic influence recalculation
+    if (blockNumber % 10 === 0) {
+      console.log("[L2] Triggering influence recalculation");
+      // later: loop creators & recalc
+    }
+  });
 }
