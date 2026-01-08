@@ -104,3 +104,9 @@ export function calculateReputation(metrics) {
     trustScore
   };
 }
+
+export function applyDecay(score, daysInactive) {
+  const decayRate = 0.5; // % per day
+  const decayed = score - daysInactive * decayRate;
+  return Math.max(0, Math.round(decayed));
+}
