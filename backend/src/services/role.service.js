@@ -1,15 +1,12 @@
 import { getTokenFactory } from "./blockchain.service.js";
+import { ethers } from "ethers";
 
-export async function detectRole(address) {
+export async function detectRole(wallet) {
   const factory = await getTokenFactory();
-  const tokenAddress = await factory.creatorToToken(address);
+  const token = await factory.creatorToToken(wallet);
 
-  if (tokenAddress !== ethers.ZeroAddress) {
-    return {
-      role: "creator",
-      creatorToken: tokenAddress
-    };
+  if (token !== ethers.ZeroAddress) {
+    return { role: "creator", creatorToken: token };
   }
-
   return { role: "fan" };
 }
