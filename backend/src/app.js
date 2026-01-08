@@ -12,9 +12,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (_, res) =>
-  res.json({ status: "HEXORA Backend Running" })
-);
+app.get("/", (_, res) => {
+  res.json({ status: "HEXORA Backend Running" });
+});
 
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
