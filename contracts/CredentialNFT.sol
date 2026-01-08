@@ -15,7 +15,10 @@ contract CredentialNFT is ERC721, Ownable {
 
     mapping(uint256 => Credential) public credentials;
 
-    constructor() ERC721("Hexora Credential", "HXC") {
+    constructor(address admin)
+        ERC721("Hexora Credential", "HXC")
+        Ownable(admin)
+    {
         tokenCounter = 0;
     }
 
@@ -25,13 +28,14 @@ contract CredentialNFT is ERC721, Ownable {
         uint256 trustScore
     ) external onlyOwner {
         uint256 tokenId = tokenCounter;
+
         _mint(creator, tokenId);
 
-        credentials[tokenId] = Credential(
-            influenceScore,
-            trustScore,
-            block.timestamp
-        );
+        credentials[tokenId] = Credential({
+            influenceScore: influenceScore,
+            trustScore: trustScore,
+            issuedAt: block.timestamp
+        });
 
         tokenCounter++;
     }
