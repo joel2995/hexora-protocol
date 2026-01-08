@@ -6,6 +6,7 @@ import userRoutes from "./routes/user.route.js";
 import creatorRoutes from "./routes/creator.route.js";
 import fanRoutes from "./routes/fan.route.js";
 import reputationRoutes from "./routes/reputation.route.js";
+import healthRoutes from "./routes/health.route.js";
 
 const app = express();
 
@@ -21,5 +22,6 @@ app.use("/user", userRoutes);
 app.use("/creator", creatorRoutes);
 app.use("/fan", fanRoutes);
 app.use("/reputation", reputationRoutes);
+app.use("/health", healthRoutes);
 
 export default app;
