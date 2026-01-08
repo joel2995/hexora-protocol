@@ -1,21 +1,42 @@
 import { ethers } from "ethers";
-import { SHARDEUM_RPC_URL } from "../config/chains.js";
+import { CHAINS } from "../config/chains.js";
 import { recalcInfluenceOnly } from "./reputationUpdate.service.js";
 
-// Dummy ABI for now
-const STAKING_POOL_ABI = [];
+/**
+ * Layer 2 — Event-driven influence updates
+ * Safe startup even if RPC is missing
+ */
 
-export function startEventListeners() {
-  const provider = new ethers.JsonRpcProvider(SHARDEUM_RPC_URL);
+export function startEventListeners(chain = "shardeum") {
+  const chainConfig = CHAINS[chain];
 
-  console.log("[L2] Event listeners started");
+  if (!chainConfig) {
+    console.warn(`[L2] Unknown chain: ${chain}`);
+    return;
+  }
 
-  // MOCK event listener (real ABI later)
+  if (!chainConfig.rpc) {
+    console.warn(
+      `[L2] RPC URL not set for ${chain}. Event listeners disabled.`
+    );
+    return;
+  }
+
+  const provider = new ethers.JsonRpcProvider(chainConfig.rpc);
+
+  console.log(`[L2] Event listeners started on ${chain}`);
+
+  // -------------------------
+  // MOCK BLOCK LISTENER
+  // -------------------------
   provider.on("block", async (blockNumber) => {
-    // simulate periodic influence recalculation
     if (blockNumber % 10 === 0) {
-      console.log("[L2] Triggering influence recalculation");
-      // later: loop creators & recalc
+      console.log(
+        `[L2] Block ${blockNumber} → Influence recalculation trigger`
+      );
+
+      // Future:
+      // recalcInfluenceOnly(wallet, metrics)
     }
   });
 }
