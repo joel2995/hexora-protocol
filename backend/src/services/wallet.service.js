@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
-export function verifySignature(address, signature) {
+export function verifySignature(wallet, signature) {
   const message = "Login to HEXORA";
   const recovered = ethers.verifyMessage(message, signature);
-  return recovered.toLowerCase() === address.toLowerCase();
+  return recovered.toLowerCase() === wallet.toLowerCase();
 }

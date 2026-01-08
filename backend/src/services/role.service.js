@@ -1,5 +1,5 @@
-import { getTokenFactory } from "./blockchain.service.js";
 import { ethers } from "ethers";
+import { getTokenFactory } from "./blockchain.service.js";
 
 export async function detectRole(wallet) {
   const factory = await getTokenFactory();
