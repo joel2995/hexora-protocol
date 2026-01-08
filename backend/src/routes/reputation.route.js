@@ -1,44 +1,89 @@
 import express from "express";
+import Reputation from "../models/Reputation.model.js";
 import { calculateReputation } from "../services/reputation.service.js";
 import { uploadToIPFS } from "../services/ipfs.service.js";
 import { keccakHash } from "../utils/hash.js";
 import { mintOrUpdateCredentialNFT } from "../services/blockchain.service.js";
-import Reputation from "../models/Reputation.model.js";
 
 const router = express.Router();
 
 router.post("/update", async (req, res) => {
   const { wallet, metrics } = req.body;
 
-  // 1️⃣ Calculate scores
-  const { influenceScore, trustScore } = calculateReputation(metrics);
+  let reputation = await Reputation.findOne({ wallet });
+  if (!reputation) reputation = new Reputation({ wallet });
 
-  // 2️⃣ Store snapshot on IPFS
-  const ipfsCID = await uploadToIPFS({
-    wallet,
+  const {
     influenceScore,
     trustScore,
-    timestamp: Date.now()
-  });
+    canUpdateInfluence,
+    canUpdateTrust
+  } = calculateReputation(metrics);
 
-  // 3️⃣ Hash snapshot
+  const now = new Date();
+
+  // -------------------------
+  // Cooldown enforcement
+  // -------------------------
+  if (
+    !canUpdateInfluence(reputation.lastInfluenceUpdate) &&
+    !canUpdateTrust(reputation.lastTrustUpdate)
+  ) {
+    return res.status(429).json({
+      error: "Score update cooldown active"
+    });
+  }
+
+  // -------------------------
+  // Versioned IPFS metadata
+  // -------------------------
+  const ipfsData = {
+    version: "v1",
+    wallet,
+    scores: {
+      influence: influenceScore,
+      trust: trustScore
+    },
+    breakdown: metrics,
+    timestamp: now.toISOString()
+  };
+
+  const ipfsCID = await uploadToIPFS(ipfsData);
   const hash = keccakHash(ipfsCID);
 
-  // 4️⃣ Mint / update Credential NFT
+  // -------------------------
+  // Update reputation record
+  // -------------------------
+  reputation.influenceScore = influenceScore;
+  reputation.trustScore = trustScore;
+  reputation.ipfsCID = ipfsCID;
+  reputation.hash = hash;
+
+  if (canUpdateInfluence(reputation.lastInfluenceUpdate)) {
+    reputation.lastInfluenceUpdate = now;
+  }
+
+  if (canUpdateTrust(reputation.lastTrustUpdate)) {
+    reputation.lastTrustUpdate = now;
+  }
+
+  reputation.history.push({
+    influenceScore,
+    trustScore,
+    timestamp: now
+  });
+
+  await reputation.save();
+
+  // -------------------------
+  // Credential NFT orchestration
+  // -------------------------
   await mintOrUpdateCredentialNFT(
     wallet,
     influenceScore,
-    trustScore
-  );
-
-  // 5️⃣ Cache in MongoDB
-  await Reputation.create({
-    wallet,
-    influenceScore,
     trustScore,
-    ipfsCID,
-    hash
-  });
+    metrics
+  );
 
   res.json({
     wallet,
