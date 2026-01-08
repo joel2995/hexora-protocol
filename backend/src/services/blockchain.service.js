@@ -1,40 +1,122 @@
+import { ethers } from "ethers";
+import { CHAINS } from "../config/chains.js";
+import { CONTRACTS } from "../config/contracts.js";
+
+/**
+ * NOTE:
+ * - This file is deployment-ready
+ * - Actual ABI + signer will be plugged in after contract deployment
+ * - Current implementation is SAFE STUB (no chain writes)
+ */
+
 export async function mintOrUpdateCredentialNFT(
   wallet,
   influenceScore,
   trustScore,
-  metrics
+  metrics,
+  chain = "shardeum" // default for internal hackathon
 ) {
   const { accountAgeDays, volatility } = metrics;
 
   // -------------------------
-  // Mint rules
+  // Mint / Update Rules
   // -------------------------
   const CAN_MINT =
     trustScore >= 60 &&
     accountAgeDays >= 14 &&
     volatility < 0.7;
 
-  // -------------------------
-  // Update rules
-  // -------------------------
   const CAN_UPDATE =
-    trustScore >= 40; // looser condition for updates
+    trustScore >= 40;
 
-  if (CAN_MINT) {
-    console.log(
-      `[NFT] Mint / Update Credential for ${wallet}`,
-      { influenceScore, trustScore }
-    );
-  } else if (CAN_UPDATE) {
-    console.log(
-      `[NFT] Update skipped (conditions not met) for ${wallet}`
-    );
-  } else {
-    console.log(
-      `[NFT] No NFT action for ${wallet}`
-    );
+  // -------------------------
+  // Chain configuration
+  // -------------------------
+  const chainConfig = CHAINS[chain];
+  const contractConfig = CONTRACTS[chain];
+
+  if (!chainConfig || !contractConfig) {
+    throw new Error(`Unsupported chain: ${chain}`);
   }
 
-  // Actual on-chain call will be added after deployment
-  return true;
+  const { rpc } = chainConfig;
+  const { credentialNFT } = contractConfig;
+
+  // -------------------------
+  // SAFETY: No deployment yet
+  // -------------------------
+  if (
+    !credentialNFT ||
+    credentialNFT === "0x0000000000000000000000000000000000000000"
+  ) {
+    console.log("[NFT] Contract not deployed yet");
+    return {
+      status: "skipped",
+      reason: "contract_not_deployed"
+    };
+  }
+
+  // -------------------------
+  // Placeholder provider & signer
+  // -------------------------
+  const provider = new ethers.JsonRpcProvider(rpc);
+
+  // signer will be enabled AFTER deployment
+  // const signer = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY, provider);
+
+  // -------------------------
+  // Decision Logic
+  // -------------------------
+  if (CAN_MINT) {
+    console.log(
+      `[NFT] Mint / Update Credential NFT`,
+      {
+        wallet,
+        influenceScore,
+        trustScore,
+        chain
+      }
+    );
+
+    // Future:
+    // await credentialContract.mintOrUpdate(wallet, influenceScore, trustScore)
+
+    return {
+      status: "mint_or_update",
+      chain,
+      wallet
+    };
+  }
+
+  if (CAN_UPDATE) {
+    console.log(
+      `[NFT] Update deferred (conditions weak)`,
+      {
+        wallet,
+        trustScore,
+        chain
+      }
+    );
+
+    return {
+      status: "deferred",
+      chain,
+      wallet
+    };
+  }
+
+  console.log(
+    `[NFT] No action taken`,
+    {
+      wallet,
+      trustScore,
+      chain
+    }
+  );
+
+  return {
+    status: "no_action",
+    chain,
+    wallet
+  };
 }
